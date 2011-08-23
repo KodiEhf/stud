@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Pull in the config
+[ -f /etc/stud.config ] && . /etcstud.config
+
+STUD=/usr/sbin/stud
+OPTIONS=""
+
+prog="stud"
+
+if [ "$ORGANIZATION" != 0 ] ; then
+    CREATEURL="$CREATEURL/$ORGANIZATION"
+fi
+
+start()
+{
+    if [ "$METHOD" == "TLS" ] ; then
+	OPTION="$OPTION --tls"
+    fi
+    if [ "$METHOD" == "SSL" ] ; then
+	OPTION="$OPTION --ssl"
+    fi
+    if [ "$CIPHER_SUITE" != 0 ] ; then
+	OPTION="$OPTION -c $CIPHER_SUITE"
+    fi
+    if [ "$BACKEND" != 0  ] ; then
+	OPTION="$OPTION -b \"$BACKEND\""
+    fi
+    if [ "$FRONTEND" != 0  ] ; then
+	OPTION="$OPTION -f \"$FRONTEND\""
+    fi
+    if [ "$CORES" != 0  ] ; then
+	OPTION="$OPTION -n $CORES"
+    fi
+    if [ "$CHROOT_PATH" != 0  ] ; then
+	OPTION="$OPTION -r $CHROOT_PATH"
+    fi
+    if [ "$USERNAME" != 0  ] ; then
+	OPTION="$OPTION -u $USERNAME"
+    fi
+    if [ "$WRITE_PROXY" != false  ] ; then
+	OPTION="$OPTION --write-proxy"
+    fi
+    if [ "$WRITE_IP" != false  ] ; then
+	OPTION="$OPTION --write-ip"
+    fi
+    OPTION="$OPTION $PEM_FILE"
+    echo "Starting $prog"
+    $STUD $OPTION >>$LOG_FILE 2>&1 &
+    RETVAL=$?
+    [ "$RETVAL" = 0 ] && touch $LOCK_FILE
+    echo
+}
+
+stop()
+{
+    echo "Stopping $prog"
+    killall $prog 2>/dev/null
+    RETVAL=$?
+    [ "$RETVAL" = 0 ] && rm -f $LOCK_FILE
+    echo
+}
+
+case "$1" in
+    start)
+	start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+	start
+	;;
+    *)
+	echo $"Usage: $0 {start|stop|restart}"
+        RETVAL=1
+esac
+exit $RETVAL
