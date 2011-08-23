@@ -1,16 +1,12 @@
 #!/bin/bash
 
 # Pull in the config
-[ -f /etc/stud.config ] && . /etcstud.config
+[ -f /etc/stud.config ] && . /etc/stud.config
 
 STUD=/usr/sbin/stud
 OPTIONS=""
 
 prog="stud"
-
-if [ "$ORGANIZATION" != 0 ] ; then
-    CREATEURL="$CREATEURL/$ORGANIZATION"
-fi
 
 start()
 {
